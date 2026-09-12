@@ -1,116 +1,91 @@
-# Many-to-many Object Relationships Lab
+# Book Contracts
 
-Now that we have learned about several types of relationships it's time to build 
-one of our own. In this lab you will be creating a many-to many relationship in 
-python 
+Python models for publishing contracts. An author can write many books, a book can have many authors, and a `Contract` sits in the middle with the date and royalty terms.
 
-## The Scenario 
+This project is the completed Flatiron lab on many-to-many object relationships.
 
-We are tasked with building a model to aid in building contracts for books with 
-multiple authors. As a part of this model we need to create an Author model, a Book 
-model and a Contract model. Authors can have many books through contracts, and books 
-can have many authors through contacts.
+## Screenshot
 
-## Tools & Resources 
-- [Github Repo](https://github.com/learn-co-curriculum/python-oo-many-to-many-book-contracts-lab)
-- [Python classes](https://docs.python.org/3/tutorial/classes.html)
+![Passing pytest results and a demo of authors signing contracts for books](images/completed-work.png)
 
-## Instructions
+The screenshot shows all 14 tests passing, plus a short demo of `Author.sign_contract()`, related books, and `total_royalties()`.
 
-### Task 1: Define the Problem
+## Features
 
-Build a model a many to many relationship between Books and Authors:
+- Create a `Book` with a `title`
+- Create an `Author` with a `name`
+- Create a `Contract` that links one author to one book
+- Look up related contracts, authors, and books through the join
+- Sign a contract from the author side with `sign_contract()`
+- Total an author's royalties across every contract
+- Filter contracts by date with `Contract.contracts_by_date()`
 
-* Build Book class
-* Build Author class
-* Build Contract class
-* Build connecting methods between all
+## Class design
 
-### Task 2: Determine the Design
+| Class | Attributes | Methods |
+| --- | --- | --- |
+| `Book` | `title`, `all` | `contracts()`, `authors()` |
+| `Author` | `name`, `all` | `contracts()`, `books()`, `sign_contract(book, date, royalties)`, `total_royalties()` |
+| `Contract` | `author`, `book`, `date`, `royalties`, `all` | `contracts_by_date(date)` |
 
-#### Book:
-* Attributes:
-  * title (string)
-  * all (array) 
-* Methods:
-  * contracts()
-  * authors()
+`Contract` properties raise an exception if the types are wrong: `author` must be an `Author`, `book` must be a `Book`, `date` must be a string, and `royalties` must be an integer.
 
-#### Authors:
-* Attributes:
-  * name (string)
-  * all (array)
-* Methods:
-  * contracts()
-  * books()
-  * sign_contracts(book,date,royalties)
-  * total_royalties()
+`authors()` and `books()` do not store the other side directly. They walk `Contract.all` and return the matching objects.
 
-#### Contracts:
-* Attributes:
-  * author (Author class), 
-  * book (Book class), 
-  * date (string), 
-  * royalties (integer)
-  * all (array)
-* Methods:
-  * contracts_by_date()
+## Getting started
 
-### Task 3: Develop, Test, and Refine the Code
+Requires Python 3.8 or later.
 
-#### Step 1: Create feature branch
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install pytest
+```
 
-#### Step 2: Create Book class
+## Usage
 
-* `__init__`: title
-* Class attributes- all
-* Methods:
-  * contracts()- This method should return a list of related contracts
-  * authors()- This method should return a list of related authors using the Contract class as an intermediary
+```python
+from many_to_many import Author, Book, Contract
 
-#### Step 3: Authors
+stephen = Author("Stephen King")
+it_book = Book("It")
+carrie = Book("Carrie")
 
-* `__init__`: name (string)
-* Class attributes- all
-* Methods:
-  * contracts()- This method should return a list of related contracts
-  * books()- This method should return a list of related books using the Contract class as an intermediary
-  * sign_contracts(book,date,royalties)- This method should create and return a new Contract object between the author and the specified book with the specified date and royalties
-  * total_royalties()- This method should return the total amount of royalties that the author has earned from all of their contracts
+stephen.sign_contract(it_book, "09/15/1986", 50000)
+stephen.sign_contract(carrie, "04/05/1974", 25000)
 
-#### Step 4: Contracts
+print([book.title for book in stephen.books()])
+# ['It', 'Carrie']
 
-* `__init__`:
-  * author
-  * book
-  * date 
-  * royalties 
-* Class attributes: all
-* Properties: All properties should raise an exception if not valid
-  * author: Is an instance of Author class
-  * book:  Is an instance of Book class
-  * date: Is an instance of a str
-  * royalties:  Is an instance of an int
-* Class Methods: contracts_by_date()- This method should return all contracts that have the same date as the date passed into the method
+print(stephen.total_royalties())
+# 75000
 
-#### Step 6: Push feature branch and open a PR on GitHub
+print([author.name for author in it_book.authors()])
+# ['Stephen King']
 
-#### Step 7: Merge to main
+print(len(Contract.contracts_by_date("09/15/1986")))
+# 1
+```
 
-### Task 4: Document and Maintain
+A book can also have more than one author. Each extra contract adds another author through the same join:
 
-Best Practice documentation steps:
-* Add comments to the code to explain purpose and logic, clarifying intent and functionality of your code to other developers.
-* Update README text to reflect the functionality of the application following https://makeareadme.com. 
-  * Add screenshot of completed work included in Markdown in README.
-* Delete any stale branches on GitHub
-* Remove unnecessary/commented out code
-* If needed, update git ignore to remove sensitive data
+```python
+peter = Author("Peter Straub")
+peter.sign_contract(it_book, "06/01/1984", 20000)
 
-## Important Submission Note
+print([author.name for author in it_book.authors()])
+# ['Stephen King', 'Peter Straub']
+```
 
-Before you submit your solution, you need to save your progress with git.
+## Tests
 
-* Add your changes to the staging area by executing git add .
-* Create a commit by executing git commit -m "Your commit message"
-* Push your commits to GitHub by executing git push origin main
+```bash
+source .venv/bin/activate
+pytest lib/testing/test_many_to_many.py -v
+```
+
+Expected result: 14 passing tests covering initialization, contract validation, related lists, `sign_contract()`, `total_royalties()`, and `contracts_by_date()`.
+
+## License
+
+This repository uses the [Learn.co Educational Content License](LICENSE.md).
